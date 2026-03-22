@@ -12,6 +12,8 @@ Parent action:
 scripts/task_loop.py init --task-id <TASK_ID> [--task-file path/to/task.md | --task-text "task text"]
 ```
 
+`init` is a serial prerequisite. Never overlap it with `freeze`, `build`, `evidence`, `verify`, `fix`, or child-agent spawning.
+
 After `init`, inspect `.agent/tasks/<TASK_ID>/spec.md` and confirm the repo-local structure is present.
 
 ## `freeze`
@@ -201,15 +203,17 @@ Return only:
 ### Parent orchestration order
 
 ```text
+Run this sequence strictly in order. Do not batch or parallelize steps.
 1. init <TASK_ID>
-2. freeze <TASK_ID> using one spec-freezer child
-3. build <TASK_ID> using one builder child
-4. evidence <TASK_ID> in the same builder child when possible, otherwise in evidence-only mode
-5. verify <TASK_ID> using one fresh verifier child
-6. if verdict is PASS, stop
-7. if verdict is FAIL or UNKNOWN, run fix <TASK_ID> using one fresh fixer child
-8. run verify <TASK_ID> again using one fresh verifier child
-9. repeat 6-8 until PASS or user stops the loop
+2. wait for init to finish, then confirm .agent/tasks/<TASK_ID>/spec.md exists
+3. freeze <TASK_ID> using one spec-freezer child
+4. build <TASK_ID> using one builder child
+5. evidence <TASK_ID> in the same builder child when possible, otherwise in evidence-only mode
+6. verify <TASK_ID> using one fresh verifier child
+7. if verdict is PASS, stop
+8. if verdict is FAIL or UNKNOWN, run fix <TASK_ID> using one fresh fixer child
+9. run verify <TASK_ID> again using one fresh verifier child
+10. repeat 7-9 until PASS or user stops the loop
 ```
 
 ## `status`

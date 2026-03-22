@@ -74,6 +74,8 @@ Hard boundaries:
 ## Codex invocation pattern
 
 Use explicit delegation language. The parent should ask Codex to spawn one named child, wait for it, and then continue.
+Do not spawn any child until `init <TASK_ID>` has finished and `.agent/tasks/<TASK_ID>/spec.md` exists.
+Do not batch `init` with other commands or tool calls.
 
 Suggested shape:
 

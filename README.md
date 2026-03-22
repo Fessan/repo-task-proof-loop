@@ -75,7 +75,8 @@ Task source:
 
 Operating rules:
 - Keep all workflow artifacts inside this repo under `.agent/tasks/<TASK_ID>/`.
-- If `.agent/tasks/<TASK_ID>/` does not exist, start with `init <TASK_ID>`.
+- Treat `init` as a barrier step.
+- If `.agent/tasks/<TASK_ID>/` does not exist, run only `init <TASK_ID>` first. Do not spawn subagents or run `freeze`, `build`, `evidence`, `verify`, or `fix` until `init` completes and `.agent/tasks/<TASK_ID>/spec.md` exists.
 - Use existing repo guidance from `AGENTS.md` and `CLAUDE.md` if present.
 - Freeze the task into `.agent/tasks/<TASK_ID>/spec.md` with:
   - the original task statement
@@ -103,7 +104,7 @@ Task:
 <paste the task here if you are not using a task file>
 ```
 
-That prompt is intentionally strict. It forces the agent to create repo-local proof, keep implementation and verification separate, and validate before sign-off.
+That prompt is intentionally strict. It forces the agent to create repo-local proof, keep implementation and verification separate, require `init` to finish before later phases begin, and validate before sign-off.
 
 ## Installation
 

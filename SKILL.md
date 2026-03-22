@@ -50,7 +50,7 @@ Treat the following words as commands when the user invokes this skill:
 - `status <TASK_ID>`: summarize current artifact status
 
 If the user does not supply a command, infer the next step from repo state:
-- If the task folder does not exist, do `init`
+- If the task folder does not exist, do `init` only. Do not start `freeze`, `build`, `evidence`, `verify`, `fix`, or subagent work until `init` succeeds and `.agent/tasks/<TASK_ID>/spec.md` exists.
 - If `spec.md` is missing or placeholder-only, do `freeze`
 - If implementation is not yet complete, do `build`
 - If evidence is stale or missing, do `evidence`
@@ -80,14 +80,16 @@ The initializer will:
 - install project-scoped subagent files
 - insert or refresh managed workflow blocks in `AGENTS.md` and `CLAUDE.md`
 
+Treat `init` as a serial prerequisite. Never overlap it with `freeze`, `build`, `evidence`, `verify`, `fix`, or child-agent spawning.
+
 ## Heavy-task default workflow
 
 For large tasks, prefer subagents when the product supports them.
 
 ### Preferred sequence
 
-1. Run `init <TASK_ID>` if needed
-2. Spawn exactly one spec-freezer subagent and wait for it
+1. Run `init <TASK_ID>` if needed. Wait for it to finish, then confirm `.agent/tasks/<TASK_ID>/spec.md` and the repo-local task structure exist before continuing.
+2. Only after `init` completes, spawn exactly one spec-freezer subagent and wait for it
 3. Spawn exactly one builder subagent and let it implement
 4. Continue with the same builder session for evidence packing when the platform supports follow-up instructions to the same child session
 5. Spawn exactly one fresh verifier subagent and wait for it
