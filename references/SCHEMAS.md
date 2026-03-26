@@ -1,6 +1,6 @@
-# Artifact schemas
+# Схемы артефактов
 
-These are the required files for each task folder:
+Обязательные файлы для каждой папки задачи:
 
 ```text
 .agent/tasks/TASK_ID/
@@ -19,7 +19,7 @@ These are the required files for each task folder:
 
 ## `evidence.json`
 
-Required top-level keys:
+Обязательные ключи верхнего уровня:
 
 - `task_id`
 - `overall_status`
@@ -28,13 +28,13 @@ Required top-level keys:
 - `commands_for_fresh_verifier`
 - `known_gaps`
 
-Allowed status values:
+Допустимые значения статуса:
 
 - `PASS`
 - `FAIL`
 - `UNKNOWN`
 
-Recommended shape:
+Рекомендуемая структура:
 
 ```json
 {
@@ -43,7 +43,7 @@ Recommended shape:
   "acceptance_criteria": [
     {
       "id": "AC1",
-      "text": "Describe the criterion",
+      "text": "Описание критерия",
       "status": "UNKNOWN",
       "proof": [
         {
@@ -51,7 +51,7 @@ Recommended shape:
           "path": ".agent/tasks/my-task/raw/test-unit.txt",
           "command": "npm test -- --runInBand",
           "exit_code": 0,
-          "summary": "Targeted unit tests passed."
+          "summary": "Точечные юнит-тесты пройдены."
         }
       ],
       "gaps": []
@@ -65,7 +65,7 @@ Recommended shape:
 
 ## `verdict.json`
 
-Required top-level keys:
+Обязательные ключи верхнего уровня:
 
 - `task_id`
 - `overall_verdict`
@@ -73,13 +73,13 @@ Required top-level keys:
 - `commands_run`
 - `artifacts_used`
 
-Allowed status values:
+Допустимые значения статуса:
 
 - `PASS`
 - `FAIL`
 - `UNKNOWN`
 
-Recommended shape:
+Рекомендуемая структура:
 
 ```json
 {
@@ -89,7 +89,7 @@ Recommended shape:
     {
       "id": "AC1",
       "status": "UNKNOWN",
-      "reason": "Not yet verified."
+      "reason": "Ещё не верифицировано."
     }
   ],
   "commands_run": [],
@@ -99,29 +99,29 @@ Recommended shape:
 
 ## `problems.md`
 
-Required sections for each non-`PASS` criterion:
+Обязательные разделы для каждого критерия со статусом не `PASS`:
 
-- criterion id and text
-- status
-- why it is not proven
-- minimal reproduction steps
-- expected vs actual
-- affected files
-- smallest safe fix
-- corrective hint in 1-3 sentences
+- идентификатор и текст критерия
+- статус
+- почему не доказан
+- минимальные шаги воспроизведения
+- ожидаемое vs фактическое
+- затронутые файлы
+- минимально безопасное исправление
+- корректирующая подсказка в 1-3 предложениях
 
-## Validation script
+## Скрипт валидации
 
-Run:
+Запуск:
 
 ```bash
 scripts/task_loop.py validate --task-id <TASK_ID>
 ```
 
-This checks:
+Проверяет:
 
-- required file presence
-- JSON parseability
-- top-level key presence
-- allowed status values
-- task id consistency
+- наличие обязательных файлов
+- парсируемость JSON
+- наличие ключей верхнего уровня
+- допустимые значения статуса
+- согласованность task id

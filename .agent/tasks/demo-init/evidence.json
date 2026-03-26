@@ -1,5 +1,5 @@
 {
-  "task_id": "{{TASK_ID}}",
+  "task_id": "demo-init",
   "overall_status": "UNKNOWN",
   "acceptance_criteria": [
     {

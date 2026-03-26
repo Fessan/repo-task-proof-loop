@@ -1,31 +1,31 @@
 
-# Reference
+# Справочник
 
-When the examples below mention `scripts/task_loop.py`, that path is relative to this skill root. Run it while your shell working directory is inside the target repository.
+Когда в примерах ниже упоминается `scripts/task_loop.py`, этот путь относительно корня навыка. Запускай его, находясь в рабочей директории внутри целевого репозитория.
 
-This skill is designed to be portable, but the repository-local artifacts and subagent files it creates must stay in the target repository.
+Этот навык спроектирован переносимым, но локальные артефакты и файлы субагентов, которые он создаёт, должны оставаться в целевом репозитории.
 
-## Recommended install locations
+## Рекомендуемые места установки
 
 ### Codex
 
-Project skill:
+Навык проекта:
 - `.agents/skills/repo-task-proof-loop/`
 
-Personal skill:
+Персональный навык:
 - `$HOME/.agents/skills/repo-task-proof-loop/`
 
 ### Claude Code
 
-Project skill:
+Навык проекта:
 - `.claude/skills/repo-task-proof-loop/`
 
-Personal skill:
+Персональный навык:
 - `~/.claude/skills/repo-task-proof-loop/`
 
-The same skill directory can be reused in either product. The initialization script writes repo-local workflow files into the current repository, not into the skill directory.
+Одна и та же директория навыка может использоваться в обоих продуктах. Скрипт инициализации записывает локальные файлы рабочего процесса в текущий репозиторий, а не в директорию навыка.
 
-## Repo files created by `init`
+## Файлы репозитория, создаваемые `init`
 
 ```text
 .agent/tasks/TASK_ID/
@@ -42,7 +42,7 @@ The same skill directory can be reused in either product. The initialization scr
   problems.md
 ```
 
-The initializer also creates or refreshes these project-level integration files:
+Инициализатор также создаёт или обновляет эти интеграционные файлы на уровне проекта:
 
 ```text
 .codex/agents/
@@ -58,34 +58,34 @@ The initializer also creates or refreshes these project-level integration files:
   task-fixer.md
 ```
 
-And it inserts a managed workflow block into:
+И вставляет управляемый блок рабочего процесса в:
 
 - `AGENTS.md`
 - `CLAUDE.md`
 
-The managed block is replaced in place on re-run, so user-authored content outside the managed markers is preserved.
+Управляемый блок заменяется на месте при повторном запуске, поэтому пользовательский контент за пределами управляемых маркеров сохраняется.
 
-## Commands
+## Команды
 
-### Initialize workflow files
+### Инициализация файлов рабочего процесса
 
 ```bash
 scripts/task_loop.py init --task-id my-task
 ```
 
-Seed the task from a task file:
+Заполнение задачи из файла:
 
 ```bash
 scripts/task_loop.py init --task-id my-task --task-file docs/task.md
 ```
 
-Seed the task from inline text:
+Заполнение задачи из текста:
 
 ```bash
-scripts/task_loop.py init --task-id my-task --task-text "Implement feature X"
+scripts/task_loop.py init --task-id my-task --task-text "Реализовать фичу X"
 ```
 
-Control which guide files are created or updated:
+Управление созданием или обновлением файлов руководства:
 
 ```bash
 scripts/task_loop.py init --task-id my-task --guides auto
@@ -95,7 +95,7 @@ scripts/task_loop.py init --task-id my-task --guides claude
 scripts/task_loop.py init --task-id my-task --guides none
 ```
 
-Control which project subagent sets are installed:
+Управление установкой субагентов на уровне проекта:
 
 ```bash
 scripts/task_loop.py init --task-id my-task --install-subagents both
@@ -104,32 +104,32 @@ scripts/task_loop.py init --task-id my-task --install-subagents claude
 scripts/task_loop.py init --task-id my-task --install-subagents none
 ```
 
-### Validate the artifact set
+### Валидация набора артефактов
 
 ```bash
 scripts/task_loop.py validate --task-id my-task
 ```
 
-### Summarize current status
+### Сводка текущего статуса
 
 ```bash
 scripts/task_loop.py status --task-id my-task
 ```
 
-## Expected working pattern
+## Ожидаемый рабочий паттерн
 
-1. Initialize the task folder
-2. Freeze the spec
-3. Implement
-4. Pack evidence
-5. Fresh verify
-6. Fix if needed
-7. Fresh verify again
+1. Инициализация папки задачи
+2. Заморозка спецификации
+3. Реализация
+4. Сбор доказательств
+5. Свежая верификация
+6. Исправление при необходимости
+7. Повторная свежая верификация
 
-For exact prompts to use with child agents, see `references/COMMANDS.md`.
+Точные промпты для использования с дочерними агентами — см. `references/COMMANDS.md`.
 
-## Notes
+## Примечания
 
-- The initializer does not write the final `spec.md` content for you. It creates the strict file structure and seeds the task statement when provided. The actual spec freeze is an agent step.
-- `evidence.json` and `verdict.json` are created with valid placeholder content so validation can run immediately after `init`.
-- `raw/screenshot-1.png` is created as a tiny placeholder PNG so the required path exists from the start.
+- Инициализатор не записывает финальное содержимое `spec.md` за тебя. Он создаёт строгую файловую структуру и заполняет формулировку задачи, если она предоставлена. Собственно заморозка спецификации — это шаг агента.
+- `evidence.json` и `verdict.json` создаются с валидным содержимым-заглушкой, чтобы валидация могла быть запущена сразу после `init`.
+- `raw/screenshot-1.png` создаётся как маленький PNG-заглушка, чтобы необходимый путь существовал с самого начала.

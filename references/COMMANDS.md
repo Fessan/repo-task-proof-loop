@@ -1,227 +1,239 @@
-# Commands and role prompts
+# Команды и промпты ролей
 
-Use these prompts as the parent-orchestrator language when running the workflow manually or through product-specific subagents.
+Используй эти промпты как язык родительского оркестратора при ручном запуске рабочего процесса или через субагентов конкретной платформы.
 
-Replace `<TASK_ID>` and any placeholder text.
+Замени `<TASK_ID>` и любой текст-заглушку.
 
 ## `init`
 
-Parent action:
+Действие родителя:
 
 ```bash
-scripts/task_loop.py init --task-id <TASK_ID> [--task-file path/to/task.md | --task-text "task text"]
+scripts/task_loop.py init --task-id <TASK_ID> [--task-file path/to/task.md | --task-text "текст задачи"]
 ```
 
-`init` is a serial prerequisite. Never overlap it with `freeze`, `build`, `evidence`, `verify`, `fix`, or child-agent spawning.
+`init` — последовательный обязательный шаг. Никогда не выполняй его параллельно с `freeze`, `build`, `evidence`, `verify`, `fix` или порождением дочерних агентов.
 
-After `init`, inspect `.agent/tasks/<TASK_ID>/spec.md` and confirm the repo-local structure is present.
+После `init` проверь `.agent/tasks/<TASK_ID>/spec.md` и убедись, что локальная структура присутствует.
 
 ## `freeze`
 
-### Parent prompt for a spec-freezer subagent
+### Промпт родителя для субагента spec-freezer
 
 ```text
-You are in SPEC FREEZE mode for TASK_ID <TASK_ID>.
+Ты в режиме ЗАМОРОЗКИ СПЕЦИФИКАЦИИ для TASK_ID <TASK_ID>.
 
-Read:
+Прочитай:
 - .agent/tasks/<TASK_ID>/spec.md
-- AGENTS.md if present
-- CLAUDE.md if present
-- any user-provided task file or inline task text
-- only the minimum relevant code needed to freeze the spec
+- AGENTS.md, если есть
+- CLAUDE.md, если есть
+- файл задачи пользователя или текст задачи
+- только минимально необходимый код для заморозки спецификации
 
-Write or update:
+Запиши или обнови:
 - .agent/tasks/<TASK_ID>/spec.md
 
-Requirements:
-- Preserve the original task statement
-- Produce explicit acceptance criteria labeled AC1, AC2, ...
-- Include constraints
-- Include non-goals
-- Add a concise verification plan
-- Resolve ambiguity narrowly and list assumptions
-- Do not change production code
-- Do not write evidence, verdict, or problems files
+Требования:
+- Сохрани исходную формулировку задачи
+- Сформулируй явные критерии приёмки с метками AC1, AC2, ...
+- Включи ограничения
+- Включи то, что не входит в задачу
+- Добавь краткий план верификации
+- Разрешай неоднозначности узко и перечисли допущения
+- Не изменяй продакшен-код
+- Не записывай файлы доказательств, вердикта или проблем
+
+Пиши на русском языке.
 ```
 
 ## `build`
 
-### Parent prompt for a builder subagent
+### Промпт родителя для субагента builder
 
 ```text
-You are in BUILD mode for TASK_ID <TASK_ID>.
+Ты в режиме РЕАЛИЗАЦИИ для TASK_ID <TASK_ID>.
 
-Read:
+Прочитай:
 - .agent/tasks/<TASK_ID>/spec.md
-- AGENTS.md if present
-- CLAUDE.md if present
+- AGENTS.md, если есть
+- CLAUDE.md, если есть
 
-Your job:
-- Implement the task against the frozen spec
-- Make the smallest safe change set that satisfies the acceptance criteria
-- Run focused checks as needed
-- Keep unrelated files untouched
-- Do not write verdict.json or problems.md
-- Do not claim final completion yet
+Твоя задача:
+- Реализуй задачу согласно замороженной спецификации
+- Вноси минимально необходимый и безопасный набор изменений, удовлетворяющий критериям приёмки
+- Выполняй точечные проверки по необходимости
+- Не трогай файлы, не относящиеся к задаче
+- Не записывай verdict.json и problems.md
+- Не заявляй о финальном завершении
 
-Return to the parent with:
-- files changed
-- checks run
-- open risks
+Верни родителю:
+- изменённые файлы
+- выполненные проверки
+- оставшиеся риски
+
+Пиши на русском языке.
 ```
 
 ## `evidence`
 
-### Follow-up prompt to the same builder session when supported
+### Продолжение промпта для той же сессии builder, если поддерживается
 
 ```text
-PACK EVIDENCE for TASK_ID <TASK_ID>.
+СОБЕРИ ДОКАЗАТЕЛЬСТВА для TASK_ID <TASK_ID>.
 
-Do not change production code.
+Не изменяй продакшен-код.
 
-Read:
+Прочитай:
 - .agent/tasks/<TASK_ID>/spec.md
-- the current repository state
-- any prior command results from this builder session
+- текущее состояние репозитория
+- результаты предыдущих команд из этой сессии builder
 
-Write or update:
+Запиши или обнови:
 - .agent/tasks/<TASK_ID>/evidence.md
 - .agent/tasks/<TASK_ID>/evidence.json
 - .agent/tasks/<TASK_ID>/raw/build.txt
 - .agent/tasks/<TASK_ID>/raw/test-unit.txt
 - .agent/tasks/<TASK_ID>/raw/test-integration.txt
 - .agent/tasks/<TASK_ID>/raw/lint.txt
-- .agent/tasks/<TASK_ID>/raw/screenshot-1.png when a screenshot is useful
+- .agent/tasks/<TASK_ID>/raw/screenshot-1.png — если скриншот полезен
 
-Rules:
-- For each AC, assign PASS, FAIL, or UNKNOWN
-- Every PASS must cite concrete proof
-- FAIL and UNKNOWN must explain the gap
-- Overall PASS only if every AC is PASS
-- Prefer raw artifacts over narrative prose
+Правила:
+- Для каждого AC присвой PASS, FAIL или UNKNOWN
+- Каждый PASS должен ссылаться на конкретное доказательство
+- FAIL и UNKNOWN должны объяснять пробел
+- Общий PASS — только если каждый AC имеет PASS
+- Предпочитай сырые артефакты повествовательному описанию
 
-Return only:
+Верни только:
 - overall_status
-- created or updated files
-- commands a fresh verifier should rerun
+- созданные или обновлённые файлы
+- команды, которые свежий верификатор должен перезапустить
+
+Пиши на русском языке.
 ```
 
-### Fallback prompt when the platform cannot continue the same child session
+### Запасной промпт, когда платформа не может продолжить ту же дочернюю сессию
 
 ```text
-You are in EVIDENCE-ONLY mode for TASK_ID <TASK_ID>.
+Ты в режиме ТОЛЬКО ДОКАЗАТЕЛЬСТВА для TASK_ID <TASK_ID>.
 
-Read:
+Прочитай:
 - .agent/tasks/<TASK_ID>/spec.md
-- the current repository state
+- текущее состояние репозитория
 
-Write the same evidence bundle as above.
+Запиши тот же пакет доказательств, что и выше.
 
-Do not change production code.
+Не изменяй продакшен-код.
+
+Пиши на русском языке.
 ```
 
 ## `verify`
 
-### Parent prompt for a fresh verifier subagent
+### Промпт родителя для свежего субагента verifier
 
 ```text
-You are a strict fresh-session verifier for TASK_ID <TASK_ID>. You are not the implementer.
+Ты — строгий верификатор в чистой сессии для TASK_ID <TASK_ID>. Ты не реализатор.
 
-Read in this order:
+Прочитай в следующем порядке:
 1. .agent/tasks/<TASK_ID>/spec.md
 2. .agent/tasks/<TASK_ID>/evidence.md
 3. .agent/tasks/<TASK_ID>/evidence.json
 
-Then independently inspect the current codebase and rerun verification.
-Source of truth is the current repository state and current command results, not prior chat claims.
+Затем независимо проверь текущую кодовую базу и перезапусти верификацию.
+Источник истины — текущее состояние репозитория и текущие результаты команд, а не заявления из предыдущих чатов.
 
-Write:
+Запиши:
 - .agent/tasks/<TASK_ID>/verdict.json
 
-If overall verdict is not PASS, also write:
+Если общий вердикт не PASS, также запиши:
 - .agent/tasks/<TASK_ID>/problems.md
 
-Rules:
-- PASS an AC only if it is proven in the current codebase now
-- FAIL if contradicted, broken, or incomplete
-- UNKNOWN if it cannot be verified locally
-- Overall PASS only if every AC PASS
-- Do not modify production code
-- Do not edit the evidence bundle
+Правила:
+- Выставляй PASS для AC только если он доказан в текущей кодовой базе прямо сейчас
+- FAIL — если опровергнуто, сломано или не завершено
+- UNKNOWN — если невозможно верифицировать локально
+- Общий PASS — только если каждый AC имеет PASS
+- Не изменяй продакшен-код
+- Не редактируй пакет доказательств
 
-`problems.md` requirements for each non-PASS AC:
-- criterion id and text
-- status
-- why it is not proven
-- minimal reproduction steps
-- expected vs actual
-- affected files
-- smallest safe fix
-- corrective hint in 1-3 sentences
+Требования к `problems.md` для каждого AC со статусом не PASS:
+- идентификатор и текст критерия
+- статус
+- почему не доказан
+- минимальные шаги воспроизведения
+- ожидаемое vs фактическое
+- затронутые файлы
+- минимально безопасное исправление
+- корректирующая подсказка в 1-3 предложениях
 
-Return only:
+Верни только:
 - overall_verdict
-- created files
-- one-line reason for each non-PASS AC
+- созданные файлы
+- однострочную причину для каждого AC со статусом не PASS
+
+Пиши на русском языке.
 ```
 
 ## `fix`
 
-### Parent prompt for a fresh fixer subagent
+### Промпт родителя для свежего субагента fixer
 
 ```text
-You are a repair agent for TASK_ID <TASK_ID>.
+Ты — агент исправлений для TASK_ID <TASK_ID>.
 
-Read only:
+Читай только:
 - .agent/tasks/<TASK_ID>/spec.md
 - .agent/tasks/<TASK_ID>/verdict.json
 - .agent/tasks/<TASK_ID>/problems.md
 
-Your job:
-- Reconfirm each listed FAIL or UNKNOWN condition before editing
-- Make the smallest safe change set
-- Avoid regressing already-passing criteria
-- Rerun only the relevant checks
-- Regenerate:
+Твоя задача:
+- Подтверди каждое указанное условие FAIL или UNKNOWN перед редактированием
+- Вноси минимально необходимый и безопасный набор изменений
+- Не допускай регрессии уже пройденных критериев
+- Перезапускай только релевантные проверки
+- Перегенерируй:
   - .agent/tasks/<TASK_ID>/evidence.md
   - .agent/tasks/<TASK_ID>/evidence.json
-  - updated raw artifacts
+  - обновлённые сырые артефакты
 
-Do not:
-- write verdict.json
-- claim final PASS without a fresh verifier
-- make broad refactors unless required to satisfy a criterion
+Запрещено:
+- записывать verdict.json
+- заявлять финальный PASS без свежего верификатора
+- делать масштабные рефакторинги, если они не требуются для удовлетворения критерия
 
-Return only:
-- files changed
-- checks rerun
-- remaining risks
+Верни только:
+- изменённые файлы
+- перезапущенные проверки
+- оставшиеся риски
+
+Пиши на русском языке.
 ```
 
 ## `run`
 
-### Parent orchestration order
+### Порядок оркестрации родителем
 
 ```text
-Run this sequence strictly in order. Do not batch or parallelize steps.
+Выполняй эту последовательность строго по порядку. Не группируй и не параллелизируй шаги.
 1. init <TASK_ID>
-2. wait for init to finish, then confirm .agent/tasks/<TASK_ID>/spec.md exists
-3. freeze <TASK_ID> using one spec-freezer child
-4. build <TASK_ID> using one builder child
-5. evidence <TASK_ID> in the same builder child when possible, otherwise in evidence-only mode
-6. verify <TASK_ID> using one fresh verifier child
-7. if verdict is PASS, stop
-8. if verdict is FAIL or UNKNOWN, run fix <TASK_ID> using one fresh fixer child
-9. run verify <TASK_ID> again using one fresh verifier child
-10. repeat 7-9 until PASS or user stops the loop
+2. дождись завершения init, затем убедись, что .agent/tasks/<TASK_ID>/spec.md существует
+3. freeze <TASK_ID> — используя одного дочернего spec-freezer
+4. build <TASK_ID> — используя одного дочернего builder
+5. evidence <TASK_ID> — в той же дочерней сессии builder, если возможно, иначе в режиме evidence-only
+6. verify <TASK_ID> — используя одного свежего дочернего verifier
+7. если вердикт PASS — стоп
+8. если вердикт FAIL или UNKNOWN — выполни fix <TASK_ID> используя одного свежего дочернего fixer
+9. выполни verify <TASK_ID> снова используя одного свежего дочернего verifier
+10. повторяй 7-9 до PASS или пока пользователь не остановит цикл
 ```
 
 ## `status`
 
-Parent action:
+Действие родителя:
 
 ```bash
 scripts/task_loop.py status --task-id <TASK_ID>
 ```
 
-If the repo is not yet initialized, run `init` first.
+Если репозиторий ещё не инициализирован, сначала выполни `init`.

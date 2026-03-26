@@ -1,8 +1,8 @@
-# Subagent integration
+# Интеграция субагентов
 
-This skill installs project-scoped subagent templates for both Codex and Claude Code.
+Этот навык устанавливает шаблоны субагентов на уровне проекта для Codex и Claude Code.
 
-## Installed files
+## Установленные файлы
 
 ### Codex
 
@@ -22,99 +22,99 @@ This skill installs project-scoped subagent templates for both Codex and Claude 
 .claude/agents/task-fixer.md
 ```
 
-The agent files are intentionally narrow and role-specific.
+Файлы агентов намеренно узкие и специфичные для каждой роли.
 
-## Role definitions
+## Определения ролей
 
 ### `task-spec-freezer`
 
-Purpose:
-- Freeze the task into `.agent/tasks/<TASK_ID>/spec.md`
+Назначение:
+- Заморозить задачу в `.agent/tasks/<TASK_ID>/spec.md`
 
-Hard boundaries:
-- May read repo guidance and relevant code
-- Must not change production code
-- Must not write verdict or problems files
+Жёсткие границы:
+- Может читать руководства репозитория и релевантный код
+- Не должен изменять продакшен-код
+- Не должен записывать файлы вердикта или проблем
 
 ### `task-builder`
 
-Purpose:
-- Implement the task and later pack evidence
+Назначение:
+- Реализовать задачу и позже собрать доказательства
 
-Modes:
+Режимы:
 - `BUILD`
 - `EVIDENCE`
 
-Hard boundaries:
-- In `BUILD`, implement against the spec
-- In `EVIDENCE`, do not change production code
+Жёсткие границы:
+- В `BUILD` — реализация согласно спецификации
+- В `EVIDENCE` — не изменять продакшен-код
 
 ### `task-verifier`
 
-Purpose:
-- Fresh-session verification against the current codebase
+Назначение:
+- Верификация в чистой сессии относительно текущей кодовой базы
 
-Hard boundaries:
-- Must not edit production code
-- Must not patch the evidence bundle to make it look complete
-- Must write `verdict.json`
-- Must write `problems.md` only when the verdict is not `PASS`
+Жёсткие границы:
+- Не должен редактировать продакшен-код
+- Не должен править пакет доказательств, чтобы он выглядел полным
+- Должен записать `verdict.json`
+- Должен записать `problems.md` только когда вердикт не `PASS`
 
 ### `task-fixer`
 
-Purpose:
-- Repair only what the verifier identified
+Назначение:
+- Исправлять только то, что выявил верификатор
 
-Hard boundaries:
-- Must reread the spec and verifier output
-- Must reconfirm the problem before editing
-- Must regenerate evidence after the fix
-- Must not write final sign-off
+Жёсткие границы:
+- Должен перечитать спецификацию и вывод верификатора
+- Должен подтвердить проблему перед редактированием
+- Должен перегенерировать доказательства после исправления
+- Не должен записывать финальное подтверждение
 
-## Codex invocation pattern
+## Паттерн вызова в Codex
 
-Use explicit delegation language. The parent should ask Codex to spawn one named child, wait for it, and then continue.
-Do not spawn any child until `init <TASK_ID>` has finished and `.agent/tasks/<TASK_ID>/spec.md` exists.
-Do not batch `init` with other commands or tool calls.
+Используй явный язык делегирования. Родитель должен попросить Codex запустить одного именованного дочернего агента, дождаться его и затем продолжить.
+Не запускай дочерних агентов, пока `init <TASK_ID>` не завершится и `.agent/tasks/<TASK_ID>/spec.md` не будет существовать.
+Не группируй `init` с другими командами или вызовами инструментов.
 
-Suggested shape:
-
-```text
-Spawn one `task-spec-freezer` agent for TASK_ID <TASK_ID>. Wait for it. Tell it to freeze the spec in .agent/tasks/<TASK_ID>/spec.md using the repo guidance and the task source.
-```
-
-Repeat the same pattern for `task-builder`, `task-verifier`, and `task-fixer`.
-
-Keep delegation depth flat. Use one child per role at a time.
-
-## Claude Code invocation pattern
-
-Use the installed project subagents from `.claude/agents/`. The parent can either explicitly select the named agent or instruct Claude to use that agent for the next step.
-
-Suggested shape:
+Рекомендуемая форма:
 
 ```text
-Use the `task-verifier` agent for TASK_ID <TASK_ID>. It must be a fresh verifier pass against the current codebase and must write verdict.json and, if needed, problems.md.
+Запусти одного агента `task-spec-freezer` для TASK_ID <TASK_ID>. Дождись его. Скажи ему заморозить спецификацию в .agent/tasks/<TASK_ID>/spec.md, используя руководства репозитория и источник задачи.
 ```
 
-For large tasks, prefer one child per role rather than a single general-purpose child.
+Повтори тот же паттерн для `task-builder`, `task-verifier` и `task-fixer`.
 
-## Same-session evidence packing
+Держи глубину делегирования плоской. Используй одного дочернего агента на роль за раз.
 
-The preferred pattern is:
+## Паттерн вызова в Claude Code
 
-1. Spawn `task-builder`
-2. Let it implement
-3. Continue with the same child in `EVIDENCE` mode
+Используй установленные субагенты проекта из `.claude/agents/`. Родитель может либо явно выбрать именованного агента, либо указать Claude использовать этого агента для следующего шага.
 
-If the platform cannot continue the same child session reliably, run a second `task-builder` child with an explicit `EVIDENCE-ONLY` prompt.
+Рекомендуемая форма:
 
-## Why the roles stay separate
+```text
+Используй агента `task-verifier` для TASK_ID <TASK_ID>. Это должна быть свежая верификация текущей кодовой базы, и он должен записать verdict.json и, при необходимости, problems.md.
+```
 
-The workflow is designed to keep:
+Для крупных задач предпочитай одного дочернего агента на роль, а не одного агента общего назначения.
 
-- implementation
-- judgment
-- correction
+## Сбор доказательств в той же сессии
 
-as separate roles. This reduces self-justification and makes failures easier to localize.
+Предпочтительный паттерн:
+
+1. Запусти `task-builder`
+2. Дай ему реализовать
+3. Продолжи в той же дочерней сессии в режиме `EVIDENCE`
+
+Если платформа не может надёжно продолжить ту же дочернюю сессию, запусти второго дочернего `task-builder` с явным промптом `EVIDENCE-ONLY`.
+
+## Почему роли остаются раздельными
+
+Рабочий процесс спроектирован так, чтобы разделить:
+
+- реализацию
+- оценку
+- исправление
+
+Это снижает самооправдание и упрощает локализацию ошибок.
