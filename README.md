@@ -64,45 +64,58 @@ If you use both tools on the same repository, install it in both locations or ke
 
 ## Quick Prompts
 
-Use the prompt that matches the current task state.
+Use the prompt that matches what you need:
 
-### Init
+- `Start New Task`: no initialized task exists yet. This runs `init` only, then stops.
+- `Check Existing Task`: you think a task may already exist, but you do not know its task ID or current state.
+- `Continue Existing Task`: an initialized task already exists, and you want the agent to do the real work.
+
+### Start New Task
 
 ```text
-Use $repo-task-proof-loop to initialize this repository for the repo-local spec -> build -> evidence -> verify -> fix workflow. Install or refresh the project-scoped subagents, update the managed workflow guidance, and stop after init completes.
+Use $repo-task-proof-loop to initialize a new repo-local task for the work below. Seed the task from this request, install or refresh the project-scoped subagents, update the managed workflow guidance, and stop after init completes. Do not start build yet.
+...
 ```
 
-### Status
+### Check Existing Task
 
 ```text
 Use $repo-task-proof-loop to find the existing repo-local task that matches the task described below, inspect its artifacts, and report the matched task ID, current status, and next recommended step.
 ...
 ```
 
-### Continue
+### Continue Existing Task
 
 ```text
 Use $repo-task-proof-loop to continue the task described below in this repository. Reuse the matching repo-local task if it already exists; if not, stop after explaining that init should be run first.
 ...
 ```
 
-For `Status` and `Continue`, replace `...` with either `Task file: <path/to/task-file.md>` on the next line or the task text pasted on following lines.
+For all three prompts, replace `...` with either `Task file: <path/to/task-file.md>` on the next line or the task text pasted on following lines.
+
+If you want to start building right away on a brand-new task, the shortest valid path is:
+
+1. run `Start New Task`
+2. then immediately run `Continue Existing Task` with the same task text
+
+This skill is intentionally proof-first, so `init` always comes before build.
 
 ## Quick Start
 
 1. Install the skill in the repository.
-2. Run the `Init` prompt once for the repo, or run `scripts/task_loop.py init` directly.
+2. For a brand-new task, run `Start New Task` once, or run `scripts/task_loop.py init` directly.
 3. In Claude Code, if `init` just created or refreshed `.claude/agents/*`, start a new Claude Code session before relying on those agents.
-4. Use the `Continue` prompt for real work. The expected loop is `freeze -> build -> evidence -> verify -> fix -> verify`.
-5. Validate before sign-off.
+4. Then run `Continue Existing Task` for the same task. That is the step that starts the real work.
+5. Use `Check Existing Task` only when you are unsure whether the task was already initialized or you need its current state.
+6. Validate before sign-off.
 
 ## Helper Script
 
 The bundled helper script currently ships three CLI commands:
 
-- `init`
+- `init` - create the repo-local task folder, artifacts, guides, and subagents
 - `validate`
-- `status`
+- `status` - inspect an existing initialized task
 
 The workflow phases `freeze`, `build`, `evidence`, `verify`, `fix`, and `run` are skill-level commands for the agent, not direct CLI subcommands in this package.
 
