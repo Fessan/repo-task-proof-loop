@@ -1,24 +1,27 @@
 <!-- repo-task-proof-loop:start -->
-## Цикл задач с доказательствами
+## Repo task proof loop
 
-Для крупных фич, рефакторингов и исправлений багов используй рабочий процесс repo-task-proof-loop.
+For substantial features, refactors, and bug fixes, use the repo-task-proof-loop workflow.
 
-Путь к артефактам:
-- Все артефакты задачи храни в `.agent/tasks/<TASK_ID>/` внутри этого репозитория.
+Required artifact path:
+- Keep all task artifacts in `.agent/tasks/<TASK_ID>/` inside this repository.
 
-Обязательная последовательность:
-1. Заморозь `.agent/tasks/<TASK_ID>/spec.md` до начала реализации.
-2. Реализуй задачу согласно явным критериям приёмки (`AC1`, `AC2`, ...).
-3. Создай `evidence.md`, `evidence.json` и сырые артефакты.
-4. Запусти свежую верификацию текущей кодовой базы с перезапуском проверок.
-5. Если верификация не `PASS` — напиши `problems.md`, внеси минимальное безопасное исправление и повтори верификацию.
+Required sequence:
+1. Freeze `.agent/tasks/<TASK_ID>/spec.md` before implementation.
+2. Implement against explicit acceptance criteria (`AC1`, `AC2`, ...).
+3. Create `evidence.md`, `evidence.json`, and raw artifacts.
+4. Run a fresh verification pass against the current codebase and rerun checks.
+5. If verification is not `PASS`, write `problems.md`, apply the smallest safe fix, and reverify.
 
-Жёсткие правила:
-- Не заявляй о завершении, пока каждый критерий приёмки не получит `PASS`.
-- Верификаторы оценивают текущий код и текущие результаты команд, а не заявления из предыдущих чатов.
-- Агенты исправлений должны вносить минимально обоснованные изменения.
+Hard rules:
+- Do not claim completion unless every acceptance criterion is `PASS`.
+- Verifiers judge current code and current command results, not prior chat claims.
+- Fixers should make the smallest defensible diff.
+- For broad Codex tasks, bounded fan-out is allowed only after `init`, only when the user has explicitly asked for delegation or parallel agent work, and only when task shape warrants it: use bounded `explorer` children before or after spec freeze, use bounded `worker` children only after the spec is frozen, keep the task tree shallow, keep evidence ownership with one builder, and keep verdict ownership with one fresh verifier.
+- This root `AGENTS.md` block is the repo-wide Codex baseline. More-specific nested `AGENTS.override.md` or `AGENTS.md` files still take precedence for their directory trees.
+- Keep this block lean. If the workflow needs more Codex guidance, prefer nested `AGENTS.md` / `AGENTS.override.md` files or configured fallback guide docs instead of expanding this root block indefinitely.
 
-Установленные агенты рабочего процесса:
+Installed workflow agents:
 - `.codex/agents/task-spec-freezer.toml`
 - `.codex/agents/task-builder.toml`
 - `.codex/agents/task-verifier.toml`
